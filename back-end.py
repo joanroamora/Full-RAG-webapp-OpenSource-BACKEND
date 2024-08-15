@@ -1,7 +1,7 @@
 import os
 from flask import Flask, jsonify, request
 from flask_cors import CORS
-from rag import generar_respuesta
+from rag import generar_respuesta, load_documents, vectorstore_n_retriever, load_retriever
 
 app = Flask(__name__)
 CORS(app)
@@ -40,11 +40,21 @@ def do_it():
     question = data.get('question')
     temperature = data.get('temperature')
     
-    response = generar_respuesta(role, question, temperature)
-    print(response)
-    # Por ahora, devolver la respuesta de la función generar_respuesta
-    return jsonify({"status": "success", "response": response}), 200
+    # Verificar si existe un archivo .sqlite3 en /vectordb y un archivo .json en /retriever
+    sqlite3_exists = any(f.endswith('.sqlite3') for f in os.listdir('vectordb'))
+    json_exists = any(f.endswith('.json') for f in os.listdir('retriever'))
 
+    if sqlite3_exists and json_exists:
+        response = generar_respuesta(role, question, temperature)
+        print(response)
+        # Por ahora, devolver la respuesta de la función generar_respuesta
+        return jsonify({"status": "success", "response": response}), 200
+    else:
+        vectorstore_n_retriever(model_name='all-MiniLM-L6-v2', docs=load_documents(), retriever_save_path='./retriever/retriever_config.json')
+        response = generar_respuesta(role, question, temperature)
+        print(response)
+        # Por ahora, devolver la respuesta de la función generar_respuesta
+        return jsonify({"status": "success", "response": response}), 200
 
 if __name__ == "__main__":
     app.run(port=5001, debug=True)
