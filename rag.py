@@ -1,6 +1,7 @@
 import os
 import json
 import chromadb
+import shutil
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_chroma import Chroma
 from langchain_huggingface import HuggingFaceEmbeddings
@@ -156,3 +157,25 @@ def generar_respuesta(rol, question, temperature):
 #respuesta = generar_respuesta(rol='assistant', question='¿Quien es pauselino?', temperature=0.7)
 #print(respuesta)
 
+def clean_subsystem():
+    # Definir las rutas de las carpetas a limpiar
+    retriever_dir = './retriever'
+    vectordb_dir = './vectordb'
+    
+    # Función para borrar el contenido de una carpeta sin eliminar la carpeta misma
+    def clear_directory(directory):
+        for filename in os.listdir(directory):
+            file_path = os.path.join(directory, filename)
+            try:
+                if os.path.isfile(file_path) or os.path.islink(file_path):
+                    os.unlink(file_path)  # Elimina el archivo o enlace simbólico
+                elif os.path.isdir(file_path):
+                    shutil.rmtree(file_path)  # Elimina el directorio y todo su contenido
+            except Exception as e:
+                print(f'Failed to delete {file_path}. Reason: {str(e)}')
+    
+    # Limpiar las carpetas
+    print("Cleaning subsystem...")
+    clear_directory(retriever_dir)
+    clear_directory(vectordb_dir)
+    print("Subsystem cleaned.")

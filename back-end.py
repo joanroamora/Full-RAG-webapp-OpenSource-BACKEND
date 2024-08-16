@@ -2,6 +2,7 @@ import os
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from rag import generar_respuesta, load_documents, vectorstore_n_retriever, load_retriever
+from rag import clean_subsystem
 
 app = Flask(__name__)
 CORS(app)
@@ -55,6 +56,17 @@ def do_it():
         print(response)
         # Por ahora, devolver la respuesta de la función generar_respuesta
         return jsonify({"status": "success", "response": response}), 200
+
+@app.route('/clean', methods=['POST'])
+def clean_system():
+    try:
+        clean_subsystem()  # Llamar a la función para limpiar el subsistema
+        print("System cleaned successfully")
+        return jsonify({"status": "success", "message": "System cleaned successfully"}), 200
+    except Exception as e:
+        print(f"Failed to clean the system: {str(e)}")
+        return jsonify({"status": "error", "message": f"Failed to clean the system: {str(e)}"}), 500
+
 
 if __name__ == "__main__":
     app.run(port=5001, debug=True)
